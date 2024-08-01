@@ -59,7 +59,7 @@ export const Upload = () => {
                 }
             } catch (error) {
                 console.log(error.message)
-                // navigate("/")
+                navigate("/")
             }
 
         }
@@ -76,7 +76,7 @@ export const Upload = () => {
                 }
             } catch (error) {
                 console.log(error.message)
-                // navigate("/")
+                navigate("/")
             }
 
         }
