@@ -30,7 +30,7 @@ export const Feedback = () => {
   }, []);
   useEffect(() => {
     async function logout(){
-      let response=await axios.get("http://localhost:5000/user/logout",{
+      let response=await axios.get("https://filesubbackend.onrender.com/user/logout",{
         withCredentials:true
       })
       if(response.data.success){

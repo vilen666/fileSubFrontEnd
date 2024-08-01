@@ -9,7 +9,7 @@ export const AdminRegister = () => {
     async function handleSubmit(e) {
         e.preventDefault()
         console.log(username,password);
-        let response=await axios.post(`http://localhost:5000/register`,{username,password},{
+        let response=await axios.post(`https://filesubbackend.onrender.com/register`,{username,password},{
             withCredentials:true
         })
         // console.log(response);

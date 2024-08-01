@@ -11,7 +11,7 @@ export const AdminMain = () => {
     const [visible, setvisible] = useState(0);
     useEffect(() => {
         const checkLogin = async () => {
-            let response = await axios.get(`http://localhost:5000/checkLogin`, {
+            let response = await axios.get(`https://filesubbackend.onrender.com/checkLogin`, {
                 withCredentials: true
             })
             if (!response.data.success) {
@@ -20,7 +20,7 @@ export const AdminMain = () => {
             }
         }
         const fetchSubs = async () => {
-            let response = await axios.get(`http://localhost:5000/fetchSubs`, {
+            let response = await axios.get(`https://filesubbackend.onrender.com/fetchSubs`, {
                 withCredentials: true
             })
             if (!response.data.success) {
@@ -33,7 +33,7 @@ export const AdminMain = () => {
         checkLogin()
     }, []);
     const handleSubUpdate = async () => {
-        let response = await axios.post(`http://localhost:5000/subUpdate`, { subcodes }, {
+        let response = await axios.post(`https://filesubbackend.onrender.com/subUpdate`, { subcodes }, {
             withCredentials: true
         })
         window.location.reload()
@@ -76,7 +76,7 @@ function AddUser() {
     const [data, setdata] = useState([]);
     const handleSubmit = async (e) => {
         e.preventDefault()
-        let response = await axios.post(`http://localhost:5000/addUser`, { name, phone, roll, email }, {
+        let response = await axios.post(`https://filesubbackend.onrender.com/addUser`, { name, phone, roll, email }, {
             withCredentials: true
         })
         window.location.reload()
@@ -86,7 +86,7 @@ function AddUser() {
         console.log(data)
         data.forEach(async (user) => {
             try {
-                let response = await axios.post(`http://localhost:5000/addUser`, user, {
+                let response = await axios.post(`https://filesubbackend.onrender.com/addUser`, user, {
                     withCredentials: true
                 })
                 if(!response.data.success){
@@ -163,7 +163,7 @@ function EditeUser() {
     const [removeUser, setremoveUser] = useState([])
     async function handleEdit() {
         removeUser.forEach(async (user) => {
-            let response = await axios.post(`http://localhost:5000/deleteUser`, user, {
+            let response = await axios.post(`https://filesubbackend.onrender.com/deleteUser`, user, {
                 withCredentials: true
             })
         })
@@ -172,7 +172,7 @@ function EditeUser() {
     useEffect(() => {
         const fetchUsers = async () => {
             try{
-                let response = await axios.get(`http://localhost:5000/fetchUsers`, {
+                let response = await axios.get(`https://filesubbackend.onrender.com/fetchUsers`, {
                     withCredentials: true
                 })
                 if (response.data.success) {
@@ -264,7 +264,7 @@ function FileUploads({ subcodes }) {
     useEffect(() => {
         const fetchFiles = async () => {
             try {
-                let response = await axios.get(`http://localhost:5000/fetchFiles`, {
+                let response = await axios.get(`https://filesubbackend.onrender.com/fetchFiles`, {
                     withCredentials: true
                 })
                 if (response.data.success) {
@@ -299,7 +299,7 @@ function FileUploads({ subcodes }) {
                     break
                 }
             }
-            let response = await axios.post(`http://localhost:5000/deleteFile`, item, {
+            let response = await axios.post(`https://filesubbackend.onrender.com/deleteFile`, item, {
                 withCredentials: true
             })
             if (response.data.success) {
@@ -315,7 +315,7 @@ function FileUploads({ subcodes }) {
     }
     const downloadZip=async ()=>{
         try {
-            let response = await axios.get(`http://localhost:5000/downloadZip/${subject}`, {
+            let response = await axios.get(`https://filesubbackend.onrender.com/downloadZip/${subject}`, {
                 withCredentials: true,
                 responseType: 'blob', // Important for handling binary data like files
               });
