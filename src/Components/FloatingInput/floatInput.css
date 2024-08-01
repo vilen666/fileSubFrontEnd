@@ -1,0 +1,30 @@
+
+  /* Styles for the input field */
+  .floating-label-input input {
+    width: 100%;
+    height:fit-content;
+    padding: 5px;
+    display: block;
+    border: 2px solid black;
+    background: transparent;
+  }
+
+
+  /* Styles for the label */
+  .floating-label-input label {
+    color: #999;
+    font-weight: normal;
+    position: absolute;
+    pointer-events: none;
+    left: 5px;
+    top: 10px;
+    transition: 0.2s ease all;
+  }
+
+  /* Move the label up when the input is focused or has a value */
+  .floating-label-input input:focus ~ label,
+  .floating-label-input input:valid ~ label {
+    top: -25px;
+    font-size: 17px;
+    color: #5264AE;
+  }
