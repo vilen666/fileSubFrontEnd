@@ -2,16 +2,20 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FloatInput } from '../../Components/FloatingInput/FloatInput'
 import axios from 'axios'
+import { useLoading } from '../../main'
 export const AdminLogin = () => {
     const navigate=useNavigate()
     const [username, setusername] = useState("");
+    const {setLoading}=useLoading()
     const [password, setpassword] = useState("");
     async function handleSubmit(e) {
         e.preventDefault()
+        setLoading(prev=>!prev)
         try {
             let response=await axios.post(`https://filesubbackend.onrender.com/login`,{username,password},{
                 withCredentials:true
             })
+        setLoading(prev=>!prev)
             console.log(response);
             if(response.data.success){
                 navigate("/admin/main")

@@ -3,21 +3,23 @@ import { useNavigate } from 'react-router-dom'
 import { FloatInput } from '../../Components/FloatingInput/FloatInput'
 import axios from 'axios'
 import { supraToast } from '../../Components/toast/SupraToast';
+import { useLoading } from '../../main';
 export const Login = () => {
-
     const [roll, setroll] = useState("");
     const [phone, setphone] = useState("");
     const navigate = useNavigate()
+    const {setLoading}=useLoading()
     useEffect(() => {
         supraToast({ success: true, msg: "Welcome By Supratim Lala" })
     }, []);
     async function handleSubmit(e) {
         e.preventDefault()
         try {
-
+            setLoading(prev=>!prev)
             let response = await axios.post(`https://filesubbackend.onrender.com/user`, { roll, phone }, {
                 withCredentials: true
             })
+            setLoading(prev=>!prev)
             if (response.data.success) {
                 supraToast({ success: true, msg: "You are successfully Logged in" })
                 navigate("/upload")

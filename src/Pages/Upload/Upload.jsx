@@ -5,6 +5,7 @@ import { setuser } from "../../store/userSlice";
 import { setfile } from '../../store/fileSlice';
 import axios from 'axios';
 import { supraToast } from '../../Components/toast/SupraToast';
+import { useLoading } from '../../main';
 export const Upload = () => {
     const dispatch = useDispatch();
     const [user, setUser] = useState({});
@@ -14,10 +15,11 @@ export const Upload = () => {
     const [fileName, setFilename] = useState([])
     const [files, setFiles] = useState([]);
     const navigate = useNavigate()
+    const { setLoading } = useLoading()
     const handleSubmit = (e) => {
         e.preventDefault()
         async function uploadFiles() {
-
+            setLoading(prev => !prev)
             try {
                 const formData = new FormData();
                 formData.append('userRoll', user.roll);
@@ -26,19 +28,20 @@ export const Upload = () => {
                 files.forEach(file => {
                     formData.append('pdfs', file.file, file.fileName);
                 })
-                let response = await axios.post(`https://filesubbackend.onrender.com/upload`, formData, {
+                let response = await axios.post(`https://filesubbackend.onrender.com/user/upload`, formData, {
                     withCredentials: true
                 })
+                setLoading(prev => !prev)
                 if (response.data.success) {
                     dispatch(setfile(response.data.list))
                     navigate("/feedback")
                 }
                 else {
+
                     throw new Error(response.data.data)
                 }
             } catch (error) {
                 supraToast({ msg: error.message })
-                // window.location.reload()
             }
         }
         uploadFiles()
@@ -46,9 +49,11 @@ export const Upload = () => {
     useEffect(() => {
         const fetchUser = async () => {
             try {
+                setLoading(prev => !prev)
                 let response = await axios.get(`https://filesubbackend.onrender.com/user/fetchUser`, {
                     withCredentials: true
                 })
+                setLoading(prev => !prev)
                 if (response.data.success) {
                     let temp = response.data.data
                     setUser(temp)
@@ -65,10 +70,12 @@ export const Upload = () => {
         }
         const fetchSubs = async () => {
             try {
-                let response = await axios.get(`https://filesubbackend.onrender.com/fetchSubs`, {
+                    setLoading(prev => !prev)
+                    let response = await axios.get(`https://filesubbackend.onrender.com/fetchSubs`, {
                     withCredentials: true
                 })
-                if (!response.data.success) {
+                    setLoading(prev => !prev)
+                    if (!response.data.success) {
                     // console.log(response.data)
                 }
                 else {
@@ -82,7 +89,8 @@ export const Upload = () => {
         }
         const fetchUserPdfs = async () => {
             try {
-                let response = await axios.get(`https://filesubbackend.onrender.com/user/fetchUserPdfs`, {
+                    setLoading(prev => !prev)
+                    let response = await axios.get(`https://filesubbackend.onrender.com/user/fetchUserPdfs`, {
                     withCredentials: true
                 })
                 // console.log(response.data)
@@ -94,8 +102,9 @@ export const Upload = () => {
                     throw new Error(response.data.data)
                 }
             } catch (error) {
-                // console.log(error.message)
+                console.log(error.message)
             }
+            setLoading(prev => !prev)
         }
         fetchUser()
         fetchSubs()
@@ -131,7 +140,7 @@ const FileSelect = ({ subject, files, setfiles, fileName, setFilename, oldFiles,
     const handleChange = (e) => {
         let tempFile = e.target.files[0]
         if (tempFile && tempFile.size > 1048576) { // 1 MB = 1048576 bytes
-            setmsg({ found: false, msg: 'File size must be less than 1 MB' });
+            setmsg({ found: false, msg: 'File size must be less than 1 MB and must be PDF' });
             e.target.value = ''; // Clear the input
         }
         else {

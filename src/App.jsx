@@ -12,16 +12,17 @@ const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-      <Route path="*" element={<NoPage/>} />
       <Route path="/" element={<Login/>} />
       <Route path="/upload" element={<Upload/>} />
       <Route path="/feedback" element={<Feedback/>} />
       <Route path="/admin" element={<AdminLogin/>} />
       <Route path="/admin/register" element={<AdminRegister/>} />
       <Route path="/admin/main" element={<AdminMain/>} />
+      <Route path="*" element={<NoPage/>} />
       </Routes>
     </BrowserRouter>
   )
 }
+
 
 export default App

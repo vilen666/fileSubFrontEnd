@@ -4,23 +4,48 @@ import {useState,useEffect} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { supraToast } from '../../Components/toast/SupraToast';
+import { useLoading } from '../../main';
 export const Feedback = () => {
   const user=useSelector((state)=>state.user.value);
   const files=useSelector((state)=>state.files.value);
   const [count, setcount] = useState(30);
+  let {setLoading}=useLoading()
   const navigate=useNavigate();
-  function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-}
   useEffect(() => {
     // Start the interval
-    let cookie=getCookie("token")
-    if(!cookie){
-      navigate("/")
-    }
+    const fetchUser = async () => {
+      try {
+          let response = await axios.get(`https://filesubbackend.onrender.com/user/fetchUser`, {
+              withCredentials: true
+          })
+          if (!response.data.success) {
+              throw new Error(response.data.data)
+          }
+      } catch (error) {
+          console.log(error.message)
+          navigate("/")
+      }
 
+  }
+  fetchUser()
+  const mailUser = async () => {
+    try {
+      setLoading(true)
+        let response = await axios.post(`https://filesubbackend.onrender.com/user/mail`,{text:files,email:user.email}, {
+            withCredentials: true
+        })
+        setLoading(false)
+        if (!response.data.success) {
+            throw new Error(response.data.data)
+        }
+        else{
+          supraToast({success:true,msg:response.data.data})
+        }
+    } catch (error) {
+        console.log(error.message)
+    }
+}
+mailUser()
     supraToast({ success: true, msg: JSON.stringify(files) })
     let b = setInterval(() => {
       setcount(prev => prev - 1);

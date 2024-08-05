@@ -3,40 +3,44 @@ import { useNavigate } from 'react-router-dom'
 import { FloatInput } from '../../Components/FloatingInput/FloatInput';
 import * as XLSX from 'xlsx';
 import axios from 'axios';
+import { useLoading } from '../../main';
 export const AdminMain = () => {
     const navigate = useNavigate()
     const options = ["add user", "edit user", "edit subjects", "edit file"]
     const [admin, setadmin] = useState({});
     const [subcodes, setsubcodes] = useState([]);
+    const { setLoading } = useLoading()
     const [visible, setvisible] = useState(0);
+    const fetchSubs = async () => {
+        setLoading(prev => !prev)
+        let response = await axios.get(`https://filesubbackend.onrender.com/fetchSubs`, {
+            withCredentials: true
+        })
+        setLoading(prev => !prev)
+        setsubcodes(response.data.data || [])
+    }
     useEffect(() => {
         const checkLogin = async () => {
+            setLoading(prev => !prev)
             let response = await axios.get(`https://filesubbackend.onrender.com/checkLogin`, {
                 withCredentials: true
             })
+            setLoading(prev => !prev)
             if (!response.data.success) {
                 console.log(response.data.data)
                 navigate("/admin")
             }
         }
-        const fetchSubs = async () => {
-            let response = await axios.get(`https://filesubbackend.onrender.com/fetchSubs`, {
-                withCredentials: true
-            })
-            if (!response.data.success) {
-                navigate("/admin")
-            }
-            setsubcodes(response.data.data || [])
-            console.log(response.data.data)
-        }
         fetchSubs()
         checkLogin()
     }, []);
     const handleSubUpdate = async () => {
+        setLoading(prev => !prev)
         let response = await axios.post(`https://filesubbackend.onrender.com/subUpdate`, { subcodes }, {
             withCredentials: true
         })
-        window.location.reload()
+        setLoading(prev => !prev)
+        fetchSubs()
     }
     return (
         <div className="main h-screen w-full p-4">
@@ -51,23 +55,23 @@ export const AdminMain = () => {
             </div>
             <div className=' overflow-x-scroll w-[90%] md:w-[70%]  h-[80%] shadow bg-white mx-auto my-7 rounded p-3'>
                 {
-                    (visible === 0) && <AddUser />
+                    (visible === 0) && <AddUser setLoading={setLoading} />
                 }
                 {
-                    (visible === 1) && <EditeUser />
+                    (visible === 1) && <EditUser setLoading={setLoading} />
                 }
                 {
-                    (visible === 2) && <Subjects subcodes={subcodes} setsubcodes={setsubcodes} handleSubUpdate={handleSubUpdate} />
+                    (visible === 2) && <Subjects setLoading={setLoading} subcodes={subcodes} setsubcodes={setsubcodes} handleSubUpdate={handleSubUpdate} />
                 }
                 {
-                    (visible === 3) && <FileUploads subcodes={subcodes} />
+                    (visible === 3) && <FileUploads setLoading={setLoading} subcodes={subcodes} />
                 }
 
             </div>
         </div>
     )
 }
-function AddUser() {
+function AddUser({ setLoading }) {
     const [name, setname] = useState("");
     const [phone, setphone] = useState("");
     const [roll, setroll] = useState("");
@@ -76,33 +80,49 @@ function AddUser() {
     const [data, setdata] = useState([]);
     const handleSubmit = async (e) => {
         e.preventDefault()
+        setLoading(prev => !prev)
         let response = await axios.post(`https://filesubbackend.onrender.com/addUser`, { name, phone, roll, email }, {
             withCredentials: true
         })
-        window.location.reload()
+        setLoading(prev => !prev)
+        setname("")
+        setemail("")
+        setphone("")
+        setroll("")
     }
-    const handleExcelSubmit = (e) => {
-        e.preventDefault()
-        console.log(data)
-        data.forEach(async (user) => {
-            try {
-                let response = await axios.post(`https://filesubbackend.onrender.com/addUser`, user, {
+    const handleExcelSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true); // Start loading
+
+        try {
+            const promises = data.map(user =>
+                axios.post(`https://filesubbackend.onrender.com/addUser`, user, {
                     withCredentials: true
                 })
-                if(!response.data.success){
-                    throw new Error(response.data.data)
+            );
+
+            // Await all the upload promises
+            const results = await Promise.all(promises);
+
+            // Check if all uploads were successful
+            results.forEach(response => {
+                if (!response.data.success) {
+                    throw new Error(response.data.data);
                 }
-            } catch (error) {
-                console.log(error.message)
-            }
-        })
-        setdata([])
-    }
+            });
+
+            console.log('All files uploaded successfully');
+        } catch (error) {
+            console.error('Error uploading files:', error.message);
+        } finally {
+            setdata([]); // Clear the data after upload
+            setLoading(false); // Stop loading
+        }
+    };
     function handleExcel(e) {
         const file = e.target.files[0];
         setmsg(file.name)
         const reader = new FileReader();
-
         reader.onload = (event) => {
             const arrayBuffer = event.target.result;
             const workbook = XLSX.read(arrayBuffer, { type: 'array' });
@@ -138,7 +158,7 @@ function AddUser() {
                                 return (
                                     <div key={key} className='flex flex-wrap gap-2'>
                                         <li>{row.name}</li>
-                                        <i className="ri-close-circle-fill text-red-600" onClick={() => {
+                                        <i className="ri-close-circle-fill text-red-600 cursor-pointer" onClick={() => {
                                             setdata(prevItems => {
                                                 const newItems = [...prevItems];  // Copy the array
                                                 newItems.splice(key, 1);        // Remove the item at the specified index
@@ -158,20 +178,42 @@ function AddUser() {
     )
 }
 
-function EditeUser() {
+function EditUser({ setLoading }) {
     const [users, setusers] = useState([]);
     const [removeUser, setremoveUser] = useState([])
     async function handleEdit() {
-        removeUser.forEach(async (user) => {
-            let response = await axios.post(`https://filesubbackend.onrender.com/deleteUser`, user, {
-                withCredentials: true
-            })
-        })
-        window.location.reload()
+        setLoading(true); // Start loading
+
+        try {
+            const promises = removeUser.map(user =>
+                axios.post(`https://filesubbackend.onrender.com/deleteUser`, user, {
+                    withCredentials: true
+                })
+            );
+
+            // Await all delete requests
+            const results = await Promise.all(promises);
+
+            // Check the success of each response
+            results.forEach(response => {
+                if (!response.data.success) {
+                    throw new Error(response.data.data);
+                }
+            });
+
+            console.log('All users deleted successfully');
+        } catch (error) {
+            console.error('Error deleting users:', error.message);
+        } finally {
+            setremoveUser([]); // Clear the removeUser array
+            setLoading(false); // Stop loading
+        }
     }
+
     useEffect(() => {
         const fetchUsers = async () => {
-            try{
+            setLoading(prev => !prev)
+            try {
                 let response = await axios.get(`https://filesubbackend.onrender.com/fetchUsers`, {
                     withCredentials: true
                 })
@@ -179,14 +221,14 @@ function EditeUser() {
                     setusers(response.data.data || [])
                     console.log(response.data.data)
                 }
-                else{
+                else {
                     throw new Error(response.data.data)
                 }
             }
-            catch(error){
+            catch (error) {
                 console.log(error.message)
             }
-            
+            setLoading(prev => !prev)
         }
         fetchUsers()
     }, []);
@@ -201,7 +243,7 @@ function EditeUser() {
                             return (
                                 <li key={key} className=' flex flex-wrap gap-2 items-center w-fit'>
                                     <div>{user.name}</div>
-                                    <i className="ri-close-circle-fill text-red-700" onClick={() => {
+                                    <i className="ri-close-circle-fill text-red-700 cursor-pointer" onClick={() => {
                                         setusers(prevItems => {
                                             const newItems = [...prevItems];  // Copy the array
                                             newItems.splice(key, 1);        // Remove the item at the specified index
@@ -214,11 +256,11 @@ function EditeUser() {
                         })
                     }
                 </ol>}
-            {removeUser[0] && <div className=' text-lg text-white bg-black text-center rounded py-2' onClick={handleEdit}>Update</div>}
+            {removeUser[0] && <div className=' text-lg text-white bg-black text-center rounded py-2 cursor-pointer' onClick={handleEdit}>Update</div>}
         </>
     )
 }
-function Subjects({ subcodes, setsubcodes, handleSubUpdate }) {
+function Subjects({ setLoading, subcodes, setsubcodes, handleSubUpdate }) {
     const [subname, setsubname] = useState("");
     function handleSubmit(e) {
         e.preventDefault()
@@ -251,22 +293,24 @@ function Subjects({ subcodes, setsubcodes, handleSubUpdate }) {
                 <label>Add subject:</label>
                 <hr className=' border-1 border-black' />
                 <FloatInput className=' w-full' label='Enter subject code' value={subname} setvalue={setsubname} />
-                <input type="submit" value="ADD" className=' text-white bg-black p-3 rounded mt-2' />
+                <input type="submit" value="ADD" className=' text-white bg-black p-3 rounded mt-2 cursor-pointer' />
             </form>
             <div className='text-xl text-white bg-black w-1/2 rounded py-2 mx-auto text-center mt-4 cursor-pointer' onClick={handleSubUpdate}>Update</div>
         </>
     )
 }
-function FileUploads({ subcodes }) {
+function FileUploads({ setLoading, subcodes }) {
     const [files, setfiles] = useState([]);
     const [subFile, setsubFile] = useState([]);
     const [subject, setsubject] = useState("");
     useEffect(() => {
         const fetchFiles = async () => {
             try {
+                setLoading(prev => !prev)
                 let response = await axios.get(`https://filesubbackend.onrender.com/fetchFiles`, {
                     withCredentials: true
                 })
+                setLoading(prev => !prev)
                 if (response.data.success) {
                     setfiles(response.data.data || [])
                     // console.log(response.data.data);
@@ -299,13 +343,15 @@ function FileUploads({ subcodes }) {
                     break
                 }
             }
+            setLoading(prev => !prev)
             let response = await axios.post(`https://filesubbackend.onrender.com/deleteFile`, item, {
                 withCredentials: true
             })
+            setLoading(prev => !prev)
             if (response.data.success) {
                 setfiles((prev) => { prev.splice(flag, 1); return [...prev] })
             }
-            else{
+            else {
                 throw new Error(response.data.data)
             }
         }
@@ -313,14 +359,16 @@ function FileUploads({ subcodes }) {
             console.log(error)
         }
     }
-    const downloadZip=async ()=>{
+    const downloadZip = async () => {
         try {
-            let response = await axios.get(`https://filesubbackend.onrender.com/downloadZip/${subject}`, {
+                setLoading(prev=>!prev)
+                let response = await axios.get(`https://filesubbackend.onrender.com/downloadZip/${subject}`, {
                 withCredentials: true,
                 responseType: 'blob', // Important for handling binary data like files
-              });
-              console.log(response.headers)
-              if (response.status === 200) {
+            });
+            setLoading(prev=>!prev)
+            console.log(response.headers)
+            if (response.status === 200) {
                 // Create a Blob from the response data
                 const url = window.URL.createObjectURL(new Blob([response.data]));
                 const a = document.createElement('a');
@@ -329,7 +377,7 @@ function FileUploads({ subcodes }) {
                 document.body.appendChild(a);
                 a.click();
                 a.remove(); // Clean up
-            
+
                 // Display success message or handle other actions
                 console.log('Files downloaded successfully!');
             } else {
@@ -339,9 +387,6 @@ function FileUploads({ subcodes }) {
             console.log(error.message)
         }
     }
-    useEffect(() => {
-        console.log("subFIle", subFile)
-    }, [subFile]);
     return (
         <>
             <div className='flex flex-col gap-2 w-full'>
@@ -359,7 +404,7 @@ function FileUploads({ subcodes }) {
                     )
                 }
                 {
-                    subFile[0] && (
+                    (subFile[0]) ? (
                         <ul className='flex flex-col items-center list-decimal w-full h-fit p-3'>
                             {
                                 subFile.map(function (item, key) {
@@ -372,11 +417,10 @@ function FileUploads({ subcodes }) {
                             <div className=' cursor-pointer text-white bg-black text-2xl rounded px-3' onClick={downloadZip}>Download</div>
                         </ul>
                     )
-                }
-                {
-                    !subFile[0] && (
-                        <div className=' mx-auto mt-10'>No Files Found</div>
-                    )
+                        :
+                        (
+                            <div className=' mx-auto mt-10'>No Files Found</div>
+                        )
                 }
             </div>
         </>
