@@ -4,17 +4,22 @@ import { FloatInput } from '../../Components/FloatingInput/FloatInput';
 import * as XLSX from 'xlsx';
 import axios from 'axios';
 import { useLoading } from '../../main';
+// const backUrl="https://filesubbackend.onrender.com"
+const backUrl="http://localhost:5000"
 export const AdminMain = () => {
     const navigate = useNavigate()
-    const options = ["add user", "edit user", "edit subjects", "edit file"]
+    const options = ["add user", "edit user", "edit subjects", "edit file","logOut"]
     const [admin, setadmin] = useState({});
     const [subcodes, setsubcodes] = useState([]);
     const { setLoading } = useLoading()
     const [visible, setvisible] = useState(0);
     const fetchSubs = async () => {
         setLoading(prev => !prev)
-        let response = await axios.get(`https://filesubbackend.onrender.com/fetchSubs`, {
-            withCredentials: true
+        let response = await axios.get(backUrl+`/fetchSubs`, {
+            // withCredentials: true
+            headers:{
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
         })
         setLoading(prev => !prev)
         setsubcodes(response.data.data || [])
@@ -22,8 +27,11 @@ export const AdminMain = () => {
     useEffect(() => {
         const checkLogin = async () => {
             setLoading(prev => !prev)
-            let response = await axios.get(`https://filesubbackend.onrender.com/checkLogin`, {
-                withCredentials: true
+            let response = await axios.get(backUrl+`/checkLogin`, {
+                // withCredentials: true
+                headers:{
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+            }
             })
             setLoading(prev => !prev)
             if (!response.data.success) {
@@ -36,8 +44,11 @@ export const AdminMain = () => {
     }, []);
     const handleSubUpdate = async () => {
         setLoading(prev => !prev)
-        let response = await axios.post(`https://filesubbackend.onrender.com/subUpdate`, { subcodes }, {
-            withCredentials: true
+        let response = await axios.post(backUrl+`/subUpdate`, { subcodes }, {
+            // withCredentials: true
+            headers:{
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
         })
         setLoading(prev => !prev)
         fetchSubs()
@@ -66,7 +77,9 @@ export const AdminMain = () => {
                 {
                     (visible === 3) && <FileUploads setLoading={setLoading} subcodes={subcodes} />
                 }
-
+                {
+                    (visible === 4) && <Logout />
+                }
             </div>
         </div>
     )
@@ -81,8 +94,11 @@ function AddUser({ setLoading }) {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setLoading(prev => !prev)
-        let response = await axios.post(`https://filesubbackend.onrender.com/addUser`, { name, phone, roll, email }, {
-            withCredentials: true
+        let response = await axios.post(backUrl+`/addUser`, { name, phone, roll, email }, {
+            // withCredentials: true
+            headers:{
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
         })
         setLoading(prev => !prev)
         setname("")
@@ -96,8 +112,11 @@ function AddUser({ setLoading }) {
 
         try {
             const promises = data.map(user =>
-                axios.post(`https://filesubbackend.onrender.com/addUser`, user, {
-                    withCredentials: true
+                axios.post(backUrl+`/addUser`, user, {
+                    // withCredentials: true
+                    headers:{
+                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
                 })
             );
 
@@ -186,8 +205,11 @@ function EditUser({ setLoading }) {
 
         try {
             const promises = removeUser.map(user =>
-                axios.post(`https://filesubbackend.onrender.com/deleteUser`, user, {
-                    withCredentials: true
+                axios.post(backUrl+`/deleteUser`, user, {
+                    // withCredentials: true
+                    headers:{
+                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
                 })
             );
 
@@ -214,8 +236,11 @@ function EditUser({ setLoading }) {
         const fetchUsers = async () => {
             setLoading(prev => !prev)
             try {
-                let response = await axios.get(`https://filesubbackend.onrender.com/fetchUsers`, {
-                    withCredentials: true
+                let response = await axios.get(backUrl+`/fetchUsers`, {
+                    // withCredentials: true,
+                    headers:{
+                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
                 })
                 if (response.data.success) {
                     setusers(response.data.data || [])
@@ -307,8 +332,11 @@ function FileUploads({ setLoading, subcodes }) {
         const fetchFiles = async () => {
             try {
                 setLoading(prev => !prev)
-                let response = await axios.get(`https://filesubbackend.onrender.com/fetchFiles`, {
-                    withCredentials: true
+                let response = await axios.get(backUrl+`/fetchFiles`, {
+                    // withCredentials: true
+                    headers:{
+                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
                 })
                 setLoading(prev => !prev)
                 if (response.data.success) {
@@ -344,7 +372,7 @@ function FileUploads({ setLoading, subcodes }) {
                 }
             }
             setLoading(prev => !prev)
-            let response = await axios.post(`https://filesubbackend.onrender.com/deleteFile`, item, {
+            let response = await axios.post(backUrl+`/deleteFile`, item, {
                 withCredentials: true
             })
             setLoading(prev => !prev)
@@ -362,9 +390,12 @@ function FileUploads({ setLoading, subcodes }) {
     const downloadZip = async () => {
         try {
                 setLoading(prev=>!prev)
-                let response = await axios.get(`https://filesubbackend.onrender.com/downloadZip/${subject}`, {
-                withCredentials: true,
+                let response = await axios.get(backUrl+`/downloadZip/${subject}`, {
+                // withCredentials: true,
                 responseType: 'blob', // Important for handling binary data like files
+                headers:{
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+            }
             });
             setLoading(prev=>!prev)
             console.log(response.headers)
@@ -423,6 +454,22 @@ function FileUploads({ setLoading, subcodes }) {
                         )
                 }
             </div>
+        </>
+    )
+}
+
+const Logout=()=>{
+    const navigate=useNavigate()
+    useEffect(() => {
+        const logout=()=>{
+            localStorage.removeItem("token")
+            console.log( "You are successfully Logged out")
+            navigate("/admin")
+        }
+        logout()
+    }, []);
+    return(
+        <>
         </>
     )
 }

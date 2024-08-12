@@ -4,6 +4,8 @@ import { FloatInput } from '../../Components/FloatingInput/FloatInput'
 import axios from 'axios'
 import { supraToast } from '../../Components/toast/SupraToast';
 import { useLoading } from '../../main';
+// const backUrl="https://filesubbackend.onrender.com"
+const backUrl="http://localhost:5000"
 export const Login = () => {
     const [roll, setroll] = useState("");
     const [phone, setphone] = useState("");
@@ -16,20 +18,23 @@ export const Login = () => {
         e.preventDefault()
         try {
             setLoading(prev=>!prev)
-            let response = await axios.post(`https://filesubbackend.onrender.com/user`, { roll, phone }, {
-                withCredentials: true
+            let response = await axios.post(backUrl+`/user`, { roll, phone }, {
+                // withCredentials: true
+                headers:{
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+            }
             })
             setLoading(prev=>!prev)
             if (response.data.success) {
                 supraToast({ success: true, msg: "You are successfully Logged in" })
+                localStorage.setItem("token",response.data.token)
                 navigate("/upload")
             }
             else {
                 throw new Error(response.data.data)
             }
         } catch (error) {
-            supraToast({success:false,msg:error.message})
-            
+            supraToast({success:false,msg:error.message})   
         }
     }
     return (

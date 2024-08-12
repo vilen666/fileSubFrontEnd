@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { FloatInput } from '../../Components/FloatingInput/FloatInput'
 import axios from 'axios'
 import { useLoading } from '../../main'
+// const backUrl="https://filesubbackend.onrender.com"
+const backUrl="http://localhost:5000"
 export const AdminLogin = () => {
     const navigate=useNavigate()
     const [username, setusername] = useState("");
@@ -12,12 +14,15 @@ export const AdminLogin = () => {
         e.preventDefault()
         setLoading(prev=>!prev)
         try {
-            let response=await axios.post(`https://filesubbackend.onrender.com/login`,{username,password},{
-                withCredentials:true
+            let response=await axios.post(backUrl+`/login`,{username,password},{
+                headers:{
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+            }
             })
         setLoading(prev=>!prev)
             console.log(response);
             if(response.data.success){
+                localStorage.setItem("token",response.data.token)
                 navigate("/admin/main")
             }
             else{

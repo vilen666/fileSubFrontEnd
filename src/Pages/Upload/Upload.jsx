@@ -6,6 +6,8 @@ import { setfile } from '../../store/fileSlice';
 import axios from 'axios';
 import { supraToast } from '../../Components/toast/SupraToast';
 import { useLoading } from '../../main';
+// const backUrl="https://filesubbackend.onrender.com"
+const backUrl="http://localhost:5000"
 export const Upload = () => {
     const dispatch = useDispatch();
     const [user, setUser] = useState({});
@@ -28,8 +30,10 @@ export const Upload = () => {
                 files.forEach(file => {
                     formData.append('pdfs', file.file, file.fileName);
                 })
-                let response = await axios.post(`https://filesubbackend.onrender.com/user/upload`, formData, {
-                    withCredentials: true
+                let response = await axios.post(backUrl+`/user/upload`, formData, {
+                    headers:{
+                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
                 })
                 setLoading(prev => !prev)
                 if (response.data.success) {
@@ -50,8 +54,10 @@ export const Upload = () => {
         const fetchUser = async () => {
             try {
                 setLoading(prev => !prev)
-                let response = await axios.get(`https://filesubbackend.onrender.com/user/fetchUser`, {
-                    withCredentials: true
+                let response = await axios.get(backUrl+`/user/fetchUser`, {
+                    headers:{
+                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
                 })
                 setLoading(prev => !prev)
                 if (response.data.success) {
@@ -71,8 +77,10 @@ export const Upload = () => {
         const fetchSubs = async () => {
             try {
                     setLoading(prev => !prev)
-                    let response = await axios.get(`https://filesubbackend.onrender.com/fetchSubs`, {
-                    withCredentials: true
+                    let response = await axios.get(backUrl+`/fetchSubs`, {
+                        headers:{
+                            Authorization: `Bearer ${localStorage.getItem("token")}`
+                    }
                 })
                     setLoading(prev => !prev)
                     if (!response.data.success) {
@@ -90,8 +98,10 @@ export const Upload = () => {
         const fetchUserPdfs = async () => {
             try {
                     setLoading(prev => !prev)
-                    let response = await axios.get(`https://filesubbackend.onrender.com/user/fetchUserPdfs`, {
-                    withCredentials: true
+                    let response = await axios.get(backUrl+`/user/fetchUserPdfs`, {
+                        headers:{
+                            Authorization: `Bearer ${localStorage.getItem("token")}`
+                    }
                 })
                 // console.log(response.data)
                 if (response.data.success) {
