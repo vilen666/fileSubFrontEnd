@@ -14,7 +14,7 @@ export const AdminRegister = () => {
         e.preventDefault()
         setLoading(true)
         let response=await axios.post(`https://filesubbackend.onrender.com/register`,{username,password},{
-            withCredentials:true
+            // withCredentials:true
         })
         console.log(response);
         setLoading(false)
