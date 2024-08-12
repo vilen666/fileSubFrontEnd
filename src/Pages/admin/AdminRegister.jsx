@@ -3,8 +3,8 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom'
 import { FloatInput } from '../../Components/FloatingInput/FloatInput'
 import { useLoading } from '../../main';
-// const backUrl="https://filesubbackend.onrender.com"
-const backUrl="http://localhost:5000"
+const backUrl="https://filesubbackend.onrender.com"
+// const backUrl="http://localhost:5000"
 export const AdminRegister = () => {
     const navigate=useNavigate()
     const [username, setusername] = useState("");
